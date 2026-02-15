@@ -40,7 +40,7 @@ def main():
     dp.add_handler(CommandHandler("set", set_city))
 
     job_queue = updater.job_queue
-    job_queue.run_repeating(send_weather, interval=60, first=10)
+    job_queue.run_repeating(send_weather, interval=3600, first=10)
 
     updater.start_polling()
     updater.idle()
