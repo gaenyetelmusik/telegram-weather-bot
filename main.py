@@ -1,6 +1,7 @@
 import requests
 import time
 import os
+from datetime import datetime
 from telegram import Bot
 from telegram.ext import Updater, CommandHandler
 
@@ -23,10 +24,22 @@ def get_weather(city):
     data = requests.get(url).json()
     if data.get("cod") != 200:
         return "Kota tidak ditemukan."
+    
     temp = data["main"]["temp"]
     desc = data["weather"][0]["description"]
     humidity = data["main"]["humidity"]
-    return f"🌤 {city}\n🌡 Suhu: {temp}°C\n💧 Kelembapan: {humidity}%\n📝 {desc}"
+    
+    # Ambil waktu berdasarkan timezone kota (dalam detik)
+    timezone_offset = data.get("timezone", 0)  # offset dalam detik dari UTC
+    
+    # Waktu UTC + offset timezone kota
+    utc_time = datetime.utcnow()
+    local_time = datetime.fromtimestamp(utc_time.timestamp() + timezone_offset)
+    
+    tanggal = local_time.strftime("%d/%m/%Y")
+    jam = local_time.strftime("%H:%M:%S")
+    
+    return f"📅 {tanggal} {jam} (Waktu {city})\n🌤 {city}\n🌡 Suhu: {temp}°C\n💧 Kelembapan: {humidity}%\n📝 {desc}"
 
 def send_weather(context):
     for user_id, city in user_city.items():
@@ -47,4 +60,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
