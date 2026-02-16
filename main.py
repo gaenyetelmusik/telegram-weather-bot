@@ -17,7 +17,13 @@ def set_city(update, context):
         return
     city = " ".join(context.args)
     user_city[user_id] = city
+    
+    # Konfirmasi kota tersimpan
     update.message.reply_text(f"Kota diset ke {city}. Update tiap 1 jam dimulai.")
+    
+    # Langsung kirim cuaca saat ini
+    weather = get_weather(city)
+    update.message.reply_text(weather)
 
 def get_weather(city):
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}&units=metric&lang=id"
