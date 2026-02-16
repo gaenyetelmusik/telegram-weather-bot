@@ -36,10 +36,11 @@ def get_weather(city):
     utc_time = datetime.utcnow()
     local_time = datetime.fromtimestamp(utc_time.timestamp() + timezone_offset)
     
-    tanggal = local_time.strftime("%d/%m/%Y")
+    # Format tanggal: 15-Feb-2026
+    tanggal = local_time.strftime("%d-%b-%Y")
     jam = local_time.strftime("%H:%M:%S")
     
-    return f"📅 {tanggal} {jam} (Waktu {city})\n🌤 {city}\n🌡 Suhu: {temp}°C\n💧 Kelembapan: {humidity}%\n📝 {desc}"
+    return f"🌤 {city}\n🌡 Suhu: {temp}°C\n💧 Kelembapan: {humidity}%\n📝 {desc}\n📅 {tanggal} {jam} (Waktu {city})"
 
 def send_weather(context):
     for user_id, city in user_city.items():
