@@ -47,15 +47,41 @@ def get_weather(city):
     jam = local_time.strftime("%H:%M:%S")
 
     # =========================
-    # Ambil prediksi 1 interval ke depan (±3 jam)
+    # Ambil forecast terdekat dari sekarang
     # =========================
+    
+    forecast_text = "\n🔮 Prediksi tidak tersedia."
+    
     if forecast_data.get("cod") == "200":
-        next_forecast = forecast_data["list"][1]  # data berikutnya
-        next_temp = next_forecast["main"]["temp"]
-        next_desc = next_forecast["weather"][0]["description"]
-        forecast_text = f"\n🔮 Perkiraan 3 jam lagi:\n🌡 {next_temp}°C\n📝 {next_desc}"
-    else:
-        forecast_text = "\n🔮 Prediksi tidak tersedia."
+        now_utc = datetime.utcnow().timestamp()
+        
+        closest_forecast = None
+        min_diff = float("inf")
+    
+        for item in forecast_data["list"]:
+            forecast_time = item["dt"]  # timestamp UTC
+            diff = forecast_time - now_utc
+            
+            if diff > 0 and diff < min_diff:
+                min_diff = diff
+                closest_forecast = item
+    
+        if closest_forecast:
+            next_temp = closest_forecast["main"]["temp"]
+            next_desc = closest_forecast["weather"][0]["description"]
+            
+            forecast_time_local = datetime.fromtimestamp(
+                closest_forecast["dt"] + timezone_offset
+            )
+            
+            jam_forecast = forecast_time_local.strftime("%H:%M")
+    
+            forecast_text = (
+                f"\n🔮 Perkiraan sekitar jam {jam_forecast}:\n"
+                f"🌡 {next_temp}°C\n"
+                f"📝 {next_desc}"
+            )
+
 
     return (
         f"🌤 {city}\n"
