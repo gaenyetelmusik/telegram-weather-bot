@@ -26,27 +26,46 @@ def set_city(update, context):
     update.message.reply_text(weather)
 
 def get_weather(city):
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}&units=metric&lang=id"
-    data = requests.get(url).json()
-    if data.get("cod") != 200:
+    current_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API}&units=metric&lang=id"
+    forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={WEATHER_API}&units=metric&lang=id"
+    
+    current_data = requests.get(current_url).json()
+    forecast_data = requests.get(forecast_url).json()
+
+    if current_data.get("cod") != 200:
         return "Kota tidak ditemukan."
     
-    temp = data["main"]["temp"]
-    desc = data["weather"][0]["description"]
-    humidity = data["main"]["humidity"]
-    
-    # Ambil waktu berdasarkan timezone kota (dalam detik)
-    timezone_offset = data.get("timezone", 0)  # offset dalam detik dari UTC
-    
-    # Waktu UTC + offset timezone kota
+    temp = current_data["main"]["temp"]
+    desc = current_data["weather"][0]["description"]
+    humidity = current_data["main"]["humidity"]
+
+    timezone_offset = current_data.get("timezone", 0)
     utc_time = datetime.utcnow()
     local_time = datetime.fromtimestamp(utc_time.timestamp() + timezone_offset)
-    
-    # Format tanggal: 15-Feb-2026
+
     tanggal = local_time.strftime("%d-%b-%Y")
     jam = local_time.strftime("%H:%M:%S")
-    
-    return f"🌤 {city}\n🌡 Suhu: {temp}°C\n💧 Kelembapan: {humidity}%\n📝 {desc}\n📅 {tanggal} {jam} (Waktu {city})"
+
+    # =========================
+    # Ambil prediksi 1 interval ke depan (±3 jam)
+    # =========================
+    if forecast_data.get("cod") == "200":
+        next_forecast = forecast_data["list"][1]  # data berikutnya
+        next_temp = next_forecast["main"]["temp"]
+        next_desc = next_forecast["weather"][0]["description"]
+        forecast_text = f"\n🔮 Perkiraan 3 jam lagi:\n🌡 {next_temp}°C\n📝 {next_desc}"
+    else:
+        forecast_text = "\n🔮 Prediksi tidak tersedia."
+
+    return (
+        f"🌤 {city}\n"
+        f"🌡 Suhu: {temp}°C\n"
+        f"💧 Kelembapan: {humidity}%\n"
+        f"📝 {desc}\n"
+        f"📅 {tanggal} {jam} (Waktu {city})"
+        f"{forecast_text}"
+    )
+
 
 def send_weather(context):
     for user_id, city in user_city.items():
